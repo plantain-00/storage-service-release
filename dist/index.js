@@ -18,11 +18,12 @@ catch {
     // do nothing
 }
 app.use(body_parser_1.default.json());
-function setCors(res) {
+app.use((_, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, GET, PUT, DELETE, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-}
+    next();
+});
 app.get('/:key', (req, res) => {
     const filePath = path_1.default.resolve(filesPath, req.params.key);
     fs_1.default.stat(filePath, (error) => {
@@ -32,7 +33,6 @@ app.get('/:key', (req, res) => {
         }
         else {
             res.setHeader('Content-Type', 'application/json');
-            setCors(res);
             res.send(fs_1.default.readFileSync(filePath));
         }
     });
@@ -46,7 +46,6 @@ app.post('/:key', (req, res) => {
         }
         else {
             res.setHeader('Content-Type', 'application/json');
-            setCors(res);
             res.send(fs_1.default.readFileSync(filePath));
         }
     });
