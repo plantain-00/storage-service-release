@@ -12,6 +12,7 @@ const http = tslib_1.__importStar(require("http"));
 const WebSocket = tslib_1.__importStar(require("ws"));
 const qs = tslib_1.__importStar(require("querystring"));
 const url = tslib_1.__importStar(require("url"));
+const server_1 = require("ws-heartbeat/server");
 const server = http.createServer();
 const wss = new WebSocket.Server({ server });
 const app = express_1.default();
@@ -85,6 +86,11 @@ app.patch('/:key', async (req, res) => {
         res.end(error.message);
     }
 });
+server_1.setWsHeartbeat(wss, (ws, data) => {
+    if (data === '{"method":"ping"}') {
+        ws.send('{"method":"pong"}');
+    }
+});
 wss.on('connection', (ws, req) => {
     if (req.url) {
         const query = url.parse(req.url).query;
@@ -101,6 +107,9 @@ wss.on('connection', (ws, req) => {
                 ws.on('message', async (data) => {
                     if (typeof data === 'string') {
                         const json = JSON.parse(data);
+                        if (json.method === 'ping') {
+                            return;
+                        }
                         if (json.method === 'patch') {
                             await patch(key, json.operations);
                         }
